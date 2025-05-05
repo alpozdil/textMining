@@ -49,9 +49,8 @@ turkish_stopwords = ['a', 'acaba', 'acep', 'adamakıllı', 'adeta', 'ait', 'altm
     'þayet', 'þey', 'şayet', 'şey', 'şeyden', 'şeye', 'şeyi', 'şeyler', 'şöyle', 'şu', 'şuna', 'şuncacık', 'şunda',
     'şundan', 'şunlar', 'şunları', 'şunların', 'şunu', 'şunun', 'şura', 'şuracık', 'şuracıkta', 'şurası', 'şöyle']
 
-# Özel kelime listesi ve ağırlıkları
+# Kelime ağırlıkları (senin tanımladığın şekilde)
 kelime_agirliklari = {
-    # Pozitif kelimeler
     "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.0, "iyi": 0.8,
     "kusursuz": 2.0, "olumlu": 1.7, "memnun": 1.5, "keyifli": 1.4, "uygun": 1.2,
     "faydalı": 1.6, "beğendim": 1.5, "hızlı": 1.4, "şık": 1.3, "müthiş": 1.9,
@@ -87,37 +86,13 @@ kelime_agirliklari = {
     "güvensiz": -1.8, "hüsran": -1.9, "yıkık": -1.7, "çirkin": -1.6, "kullanışsız": -1.8
 }
 
-
-# Yıldız hesaplama fonksiyonu
-def hesapla_yildiz(toplam_skor):
-    if toplam_skor >= 10:
-        return 5.0
-    elif toplam_skor >= 9:
-        return 4.9
-    elif toplam_skor >= 8:
-        return 4.8
-    elif toplam_skor >= 7:
-        return 4.7
-    elif toplam_skor >= 6:
-        return 4.6
-    elif toplam_skor >= 5:
-        return 4.5
-    elif toplam_skor >= 4:
-        return 4.0
-    elif toplam_skor >= 3:
-        return 3.5
-    elif toplam_skor >= 2:
-        return 3.0
-    elif toplam_skor >= 1:
-        return 2.5
-    elif toplam_skor >= 0:
-        return 2.0
-    elif toplam_skor >= -1:
-        return 1.5
-    elif toplam_skor >= -2:
-        return 1.0
-    else:
-        return 0.5
+# Yeni yıldız hesaplama (yorum sayısını dikkate alan)
+def hesapla_yildiz(toplam_skor, yorum_sayisi):
+    if yorum_sayisi == 0:
+        return 0.0
+    ortalama_skor = toplam_skor / yorum_sayisi
+    normalize_edilmis = max(min((ortalama_skor + 1.5) / 3.0 * 5.0, 5.0), 0.5)
+    return round(normalize_edilmis, 1)
 
 # PostgreSQL bağlantısı
 try:
@@ -135,15 +110,13 @@ except Exception as e:
 
 try:
     cursor = conn.cursor()
-    cursor.execute("SELECT product_name, review_text FROM product_reviews")  # Tablo adını ve sütunları kontrol et
+    cursor.execute("SELECT product_name, review_text FROM product_reviews")
     rows = cursor.fetchall()
 
-    # WordCloud klasörünü oluştur
     os.makedirs("WordClouds", exist_ok=True)
 
     yorumlar_dict = {}
     for product_name, yorum in rows:
-        # Geçersiz karakterleri temizle
         valid_product_name = re.sub(r'[<>:"/\\|?*]', '_', product_name.strip().replace(" ", "_"))
         if valid_product_name not in yorumlar_dict:
             yorumlar_dict[valid_product_name] = []
@@ -153,40 +126,35 @@ try:
         birlesik_yorumlar = " ".join(yorum_listesi).lower().translate(str.maketrans('', '', string.punctuation))
         kelimeler = [kelime for kelime in birlesik_yorumlar.split() if kelime not in turkish_stopwords]
 
-        # Kelime ağırlıklarına göre toplam skor hesapla
-        toplam_skor = 0
-        for kelime in kelimeler:
-            toplam_skor += kelime_agirliklari.get(kelime, 0)  # Kelime ağırlığı varsa ekle, yoksa 0 ekle
-
-        # Toplam skor üzerinden detaylı yıldız hesaplama
-        yildiz = hesapla_yildiz(toplam_skor)
+        toplam_skor = sum(kelime_agirliklari.get(k, 0) for k in kelimeler)
+        yorum_sayisi = len(yorum_listesi)
+        yildiz = hesapla_yildiz(toplam_skor, yorum_sayisi)
 
         # WordCloud oluştur
         wordcloud = WordCloud(
             width=800,
             height=400,
             background_color="white",
-            contour_width=2,  # Kenarlık kalınlığı
-            contour_color="red"  # Kenarlık rengi
+            contour_width=2,
+            contour_color="red"
         ).generate(" ".join(kelimeler))
 
-        # WordCloud kaydet
+        # Kaydet
         plt.figure(figsize=(10, 5))
         plt.imshow(wordcloud, interpolation="bilinear")
         plt.axis("off")
-        plt.title(f"{product_name} - {yildiz:.1f} Yıldız", fontsize=16)  # Yıldız puanını başlığa ekle
-        file_path = f"WordClouds/{product_name}.png"
-        plt.savefig(file_path)
+        plt.title(f"{product_name} - {yildiz} ⭐", fontsize=16)
+        path = f"WordClouds/{product_name}.png"
+        plt.savefig(path)
         plt.close()
-        print(f"{file_path} kaydedildi.")
+        print(f"{path} kaydedildi.")
 
-        # Kelime ağırlıklarını ve yıldız sonucunu konsolda yazdır
-        print(f"\n'{product_name}' için kelime ağırlıkları ve değerlendirme:")
-        print(f"Toplam Skor: {toplam_skor:.2f}")
-        print(f"Yıldız: {yildiz:.1f}")
-        kelime_agirliklari_wordcloud = wordcloud.words_  # WordCloud'daki kelime ve ağırlık sözlüğü
-        for kelime, agirlik in kelime_agirliklari_wordcloud.items():
-            print(f"{kelime}: {agirlik}")
+        # Konsola yaz
+        print(f"\n'{product_name}' için:")
+        print(f"- Yorum Sayısı: {yorum_sayisi}")
+        print(f"- Toplam Skor: {toplam_skor:.2f}")
+        print(f"- Ortalama Skor: {toplam_skor / yorum_sayisi:.2f}" if yorum_sayisi > 0 else "- Ortalama Skor: 0")
+        print(f"- Hesaplanan Yıldız: {yildiz}")
 
 except Exception as e:
     print(f"İşlem hatası: {e}")

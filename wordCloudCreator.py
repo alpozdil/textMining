@@ -49,58 +49,101 @@ turkish_stopwords = [
     'þayet', 'þey', 'şayet', 'şey', 'şeyden', 'şeye', 'şeyi', 'şeyler', 'şöyle', 'şu', 'şuna', 'şuncacık', 'şunda',
     'şundan', 'şunlar', 'şunları', 'şunların', 'şunu', 'şunun', 'şura', 'şuracık', 'şuracıkta', 'şurası', 'şöyle'
 ]
+# Kelime ağırlıkları (senin tanımladığın şekilde)
+kelime_agirliklari = {
+    "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.0, "iyi": 0.8,
+    "kusursuz": 2.0, "olumlu": 1.7, "memnun": 1.5, "keyifli": 1.4, "uygun": 1.2,
+    "faydalı": 1.6, "beğendim": 1.5, "hızlı": 1.4, "şık": 1.3, "müthiş": 1.9,
+    "özenli": 1.6, "rahat": 1.4, "başarılı": 1.8, "düzgün": 1.2, "dostane": 1.3,
+    "etkileyici": 1.9, "iyi iş": 1.7, "mükemmel hizmet": 2.0, "uyumlu": 1.2,
+    "dayanıklı": 1.5, "mutlu": 1.8, "kalite": 1.6, "kolay": 1.2, "konforlu": 1.4,
+    "zarif": 1.5, "kibar": 1.3, "teşekkür ederim": 1.6, "tatlı": 1.4,
+    "çok teşekkürler": 1.7, "bayıldım": 1.9, "tavsiye ederim": 1.8,
+    "kullanışlı": 1.6, "şık duruyor": 1.5, "zarif duruyor": 1.5,
+    "beğendi": 1.4, "ürün güzel": 1.6, "harika güzeldi": 1.8,
+    "hızlı sağlam": 1.7, "güzel alın": 1.5, "naif": 1.3, "sorunsuz": 1.4,
+    "almıştım beğendi": 1.4, "severek kullanıyorum": 1.6, "aldım uygun": 1.3,
+    "beğendik": 1.4, "mükemmel sevdim": 2.0, "duruyor": 1.0,
+    "elime ulaştı": 1.4, "fiyat performans": 1.6, "alabilirsiniz": 1.5,
+    "özenli göründüğü": 1.6, "geldi rahat": 1.4, "duruşu tatlı": 1.5,
+    "aynısı beğendi": 1.5, "ideal": 1.3, "begendim": 1.4,
+    "kendime alacağım": 1.6, "severek kullanıyor": 1.7, "alın aldırın": 1.5,
+    "ulaştı elime": 1.4, "hızlı ulaştı": 1.5, "kargo hızlıydı": 1.5,
+    "aldım beğenildi": 1.6, "özenle parça": 1.5, "güzell": 1.4,
+    "severek çalışıyor": 1.5, "bayıldımmm": 2.0, "inanılmaz": 1.9,
+    "tavsiye ediyorum": 1.9, "ulaştı öneririm": 1.6, "narin": 1.5,
+    "iyiydi": 1.4, "kalitesi": 1.6, "beyendim": 1.4,
+    "bayıldımmmm": 2.0, "memnun kaldım": 1.7, "almanızı tavsiye": 1.9,
+    "hızlı teslimat": 1.6, "hoşuma gitti": 1.5, "hizli": 1.4, "bayıldımm": 2.0,
+
+    # Negatif kelimeler
+    "kötü": -1.5, "berbat": -2.0, "hasarlı": -1.8, "geç": -1.2, "iade": -1.5,
+    "bozuk": -1.7, "dikkatsiz": -1.4, "uygunsuz": -1.6, "kırık": -1.8, "problemli": -1.5,
+    "yanlış": -1.3, "eksik": -1.7, "yavaş": -1.4, "kalitesiz": -1.8, "hayal kırıklığı": -2.0,
+    "korkunç": -2.0, "fiyasko": -2.0, "sinir bozucu": -1.8, "beğenmedim": -1.5, "rahatsız": -1.4,
+    "yetersiz": -1.6, "gereksiz": -1.3, "saygısız": -1.9, "memnuniyetsiz": -1.8, "kaba": -1.5,
+    "rezalet": -2.0, "pişmanlık": -1.7, "kaos": -1.9, "uygunsuzluk": -1.5, "zorlayıcı": -1.2,
+    "güvensiz": -1.8, "hüsran": -1.9, "yıkık": -1.7, "çirkin": -1.6, "kullanışsız": -1.8
+}
 
 # PostgreSQL bağlantısı
 try:
     conn = psycopg2.connect(
-        dbname="postgres",
-        user="postgres",
-        password="password",
-        host="localhost",
-        port="5432"
+        dbname="postgres", user="postgres",
+        password="password", host="localhost", port="5432"
     )
     print("Bağlantı başarılı!")
 except Exception as e:
     print(f"Bağlantı hatası: {e}")
     exit()
 
-# Tüm yorumları birleştirip WordCloud oluşturma
 try:
     cursor = conn.cursor()
-    cursor.execute("SELECT product_name, review_text FROM product_reviews")  # Tablo adını ve sütunları kontrol et
+    cursor.execute("SELECT product_name, review_text FROM product_reviews")
     rows = cursor.fetchall()
 
-    # WordCloud klasörünü oluştur
     os.makedirs("WordClouds", exist_ok=True)
 
+    # Ürün bazlı yorumları grupla
     yorumlar_dict = {}
     for product_name, yorum in rows:
-        # Geçersiz karakterleri temizle
-        valid_product_name = re.sub(r'[<>:"/\\|?*]', '_', product_name.strip().replace(" ", "_"))
-        if valid_product_name not in yorumlar_dict:
-            yorumlar_dict[valid_product_name] = []
-        yorumlar_dict[valid_product_name].append(yorum)
+        valid_name = re.sub(r'[<>:"/\\|?*]', '_',
+                            product_name.strip().replace(" ", "_"))
+        yorumlar_dict.setdefault(valid_name, []).append(yorum)
 
     for product_name, yorum_listesi in yorumlar_dict.items():
-        birlesik_yorumlar = " ".join(yorum_listesi).lower().translate(str.maketrans('', '', string.punctuation))
-        kelimeler = [kelime for kelime in birlesik_yorumlar.split() if kelime not in turkish_stopwords]
+        # Birleştir, temizle, token'lara böl
+        birleşik = " ".join(yorum_listesi).lower()
+        temiz = birleşik.translate(str.maketrans('', '', string.punctuation))
+        tokens = [w for w in temiz.split() if w not in turkish_stopwords]
 
-        wordcloud = WordCloud(
-            width=800,
-            height=400,
-            background_color="white",
-            contour_width=2,  # Kenarlık kalınlığı
-            contour_color="red"  # Kenarlık rengi
-        ).generate(" ".join(kelimeler))
+        # WordCloud oluştur
+        wc = WordCloud(
+            width=800, height=400, background_color="white",
+            contour_width=2, contour_color="red"
+        ).generate(" ".join(tokens))
 
-        # WordCloud kaydet
+        # WordCloud görselini kaydet
         plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation="bilinear")
+        plt.imshow(wc, interpolation="bilinear")
         plt.axis("off")
-        file_path = f"WordClouds/{product_name}.png"
-        plt.savefig(file_path)
+        path = f"WordClouds/{product_name}.png"
+        plt.savefig(path)
         plt.close()
-        print(f"{file_path} kaydedildi.")
+
+        # Konsola yazdır: kelime, frekans, ağırlık, çarpım
+        print(f"\n'{product_name}' ürünü için kelime ağırlık çarpımları:")
+        print("-" * 60)
+        # wordcloud.words_ : {kelime: frekans (0-1 arası, normalize)}
+        for kelime, freq in sorted(wc.words_.items(),
+                                   key=lambda x: x[1], reverse=True):
+            if kelime in kelime_agirliklari:
+                agirlik = kelime_agirliklari[kelime]
+                carpim = freq * agirlik
+                print(f"{kelime:12} | freq: {freq:.4f} | ağırlık: {agirlik:.2f} | çarpım: {carpim:.4f}")
+
+        print(f"\nWordCloud kaydedildi: {path}")
+
 except Exception as e:
     print(f"İşlem hatası: {e}")
 finally:
