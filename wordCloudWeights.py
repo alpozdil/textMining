@@ -51,9 +51,42 @@ turkish_stopwords = ['a', 'acaba', 'acep', 'adamakıllı', 'adeta', 'ait', 'altm
 
 # Özel kelime listesi ve ağırlıkları
 kelime_agirliklari = {
-    "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.0, "iyi": 0.8,"memnun":1.5,"beğendim":1.5,
-    "kötü": -1.5, "berbat": -2.0, "hasarlı": -1.8, "geç": -1.2, "iade": -1.5
+    # Pozitif kelimeler
+    "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.0, "iyi": 0.8,
+    "kusursuz": 2.0, "olumlu": 1.7, "memnun": 1.5, "keyifli": 1.4, "uygun": 1.2,
+    "faydalı": 1.6, "beğendim": 1.5, "hızlı": 1.4, "şık": 1.3, "müthiş": 1.9,
+    "özenli": 1.6, "rahat": 1.4, "başarılı": 1.8, "düzgün": 1.2, "dostane": 1.3,
+    "etkileyici": 1.9, "iyi iş": 1.7, "mükemmel hizmet": 2.0, "uyumlu": 1.2,
+    "dayanıklı": 1.5, "mutlu": 1.8, "kalite": 1.6, "kolay": 1.2, "konforlu": 1.4,
+    "zarif": 1.5, "kibar": 1.3, "teşekkür ederim": 1.6, "tatlı": 1.4,
+    "çok teşekkürler": 1.7, "bayıldım": 1.9, "tavsiye ederim": 1.8,
+    "kullanışlı": 1.6, "şık duruyor": 1.5, "zarif duruyor": 1.5,
+    "beğendi": 1.4, "ürün güzel": 1.6, "harika güzeldi": 1.8,
+    "hızlı sağlam": 1.7, "güzel alın": 1.5, "naif": 1.3, "sorunsuz": 1.4,
+    "almıştım beğendi": 1.4, "severek kullanıyorum": 1.6, "aldım uygun": 1.3,
+    "beğendik": 1.4, "mükemmel sevdim": 2.0, "duruyor": 1.0,
+    "elime ulaştı": 1.4, "fiyat performans": 1.6, "alabilirsiniz": 1.5,
+    "özenli göründüğü": 1.6, "geldi rahat": 1.4, "duruşu tatlı": 1.5,
+    "aynısı beğendi": 1.5, "ideal": 1.3, "begendim": 1.4,
+    "kendime alacağım": 1.6, "severek kullanıyor": 1.7, "alın aldırın": 1.5,
+    "ulaştı elime": 1.4, "hızlı ulaştı": 1.5, "kargo hızlıydı": 1.5,
+    "aldım beğenildi": 1.6, "özenle parça": 1.5, "güzell": 1.4,
+    "severek çalışıyor": 1.5, "bayıldımmm": 2.0, "inanılmaz": 1.9,
+    "tavsiye ediyorum": 1.9, "ulaştı öneririm": 1.6, "narin": 1.5,
+    "iyiydi": 1.4, "kalitesi": 1.6, "beyendim": 1.4,
+    "bayıldımmmm": 2.0, "memnun kaldım": 1.7, "almanızı tavsiye": 1.9,
+    "hızlı teslimat": 1.6, "hoşuma gitti": 1.5, "hizli": 1.4, "bayıldımm": 2.0,
+
+    # Negatif kelimeler
+    "kötü": -1.5, "berbat": -2.0, "hasarlı": -1.8, "geç": -1.2, "iade": -1.5,
+    "bozuk": -1.7, "dikkatsiz": -1.4, "uygunsuz": -1.6, "kırık": -1.8, "problemli": -1.5,
+    "yanlış": -1.3, "eksik": -1.7, "yavaş": -1.4, "kalitesiz": -1.8, "hayal kırıklığı": -2.0,
+    "korkunç": -2.0, "fiyasko": -2.0, "sinir bozucu": -1.8, "beğenmedim": -1.5, "rahatsız": -1.4,
+    "yetersiz": -1.6, "gereksiz": -1.3, "saygısız": -1.9, "memnuniyetsiz": -1.8, "kaba": -1.5,
+    "rezalet": -2.0, "pişmanlık": -1.7, "kaos": -1.9, "uygunsuzluk": -1.5, "zorlayıcı": -1.2,
+    "güvensiz": -1.8, "hüsran": -1.9, "yıkık": -1.7, "çirkin": -1.6, "kullanışsız": -1.8
 }
+
 
 # Yıldız hesaplama fonksiyonu
 def hesapla_yildiz(toplam_skor):
