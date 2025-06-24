@@ -51,7 +51,7 @@ turkish_stopwords = [
 ]
 # Kelime ağırlıkları (senin tanımladığın şekilde)
 kelime_agirliklari = {
-    "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.0, "iyi": 0.8,
+    "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.5, "iyi": 1.0,
     "kusursuz": 2.0, "olumlu": 1.7, "memnun": 1.5, "keyifli": 1.4, "uygun": 1.2,
     "faydalı": 1.6, "beğendim": 1.5, "hızlı": 1.4, "şık": 1.3, "müthiş": 1.9,
     "özenli": 1.6, "rahat": 1.4, "başarılı": 1.8, "düzgün": 1.2, "dostane": 1.3,
@@ -78,6 +78,7 @@ kelime_agirliklari = {
 
     # Negatif kelimeler
     "kötü": -1.5, "berbat": -2.0, "hasarlı": -1.8, "geç": -1.2, "iade": -1.5,
+    "sorun": -1.5,
     "bozuk": -1.7, "dikkatsiz": -1.4, "uygunsuz": -1.6, "kırık": -1.8, "problemli": -1.5,
     "yanlış": -1.3, "eksik": -1.7, "yavaş": -1.4, "kalitesiz": -1.8, "hayal kırıklığı": -2.0,
     "korkunç": -2.0, "fiyasko": -2.0, "sinir bozucu": -1.8, "beğenmedim": -1.5, "rahatsız": -1.4,

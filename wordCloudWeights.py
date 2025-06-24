@@ -4,22 +4,46 @@ import matplotlib.pyplot as plt
 import os
 import string
 import re
-
+import csv
+import math
 # Türkçe stopwords listesi
-turkish_stopwords = ['a', 'acaba', 'acep', 'adamakıllı', 'adeta', 'ait', 'altmýþ', 'altmış', 'altı', 'ama', 'amma', 'anca', 'ancak',
-    'arada', 'artýk', 'aslında', 'aynen', 'ayrıca', 'az', 'açıkça', 'açıkçası', 'bana', 'bari', 'bazen', 'bazý', 'bazı',
-    'başkası', 'baţka', 'belki', 'ben', 'benden', 'beni', 'benim', 'beri', 'beriki', 'beş', 'beţ', 'bilcümle', 'bile',
-    'bin', 'binaen', 'binaenaleyh', 'bir', 'biraz', 'birazdan', 'birbiri', 'birden', 'birdenbire', 'biri', 'birice',
-    'birileri', 'birisi', 'birkaç', 'birkaçı', 'birkez', 'birlikte', 'birçok', 'birçoğu', 'birþey', 'birþeyi', 'birşey',
-    'birşeyi', 'birţey', 'bitevi', 'biteviye', 'bittabi', 'biz', 'bizatihi', 'bizce', 'bizcileyin', 'bizden', 'bize',
-    'bizi', 'bizim', 'bizimki', 'bizzat', 'boşuna', 'bu', 'buna', 'bunda', 'bundan', 'bunlar', 'bunları', 'bunların',
-    'bunu', 'bunun', 'buracıkta', 'burada', 'buradan', 'burası', 'böyle', 'böylece', 'böylecene', 'böylelikle',
-    'böylemesine', 'böylesine', 'büsbütün', 'bütün', 'cuk', 'cümlesi', 'da', 'daha', 'dahi', 'dahil', 'dahilen', 'daima',
-    'dair', 'dayanarak', 'de', 'defa', 'dek', 'demin', 'demincek', 'deminden', 'denli', 'derakap', 'derhal', 'derken',
-    'deđil', 'değil', 'değin', 'diye', 'diđer', 'diğer', 'diğeri', 'doksan', 'dokuz', 'dolayı', 'dolayısıyla', 'doğru',
-    'dört', 'edecek', 'eden', 'ederek', 'edilecek', 'ediliyor', 'edilmesi', 'ediyor', 'elbet', 'elbette', 'elli', 'emme',
-    'en', 'enikonu', 'epey', 'epeyce', 'epeyi', 'esasen', 'esnasında', 'etmesi', 'etraflı', 'etraflıca', 'etti',
-    'ettiği', 'ettiğini', 'evleviyetle', 'evvel', 'evvela', 'evvelce', 'evvelden', 'evvelemirde', 'evveli', 'eđer',
+turkish_stopwords = ['a', 'acaba', 'acep', 'adamakıllı',
+                     'adeta', 'ait', 'altmýþ', 'altmış', 'altı',
+                     'ama', 'amma', 'anca', 'ancak',
+                     'arada', 'artýk', 'aslında', 'aynen', 'ayrıca',
+                     'az', 'açıkça','açıkçası', 'bana', 'bari',
+                     'bazen', 'bazý', 'bazı', 'başkası', 'baţka',
+                     'belki', 'ben', 'benden', 'beni', 'benim',
+                     'beri', 'beriki', 'beş', 'beţ', 'bilcümle',
+                     'bile','bin', 'binaen', 'binaenaleyh', 'bir',
+                     'biraz', 'birazdan', 'birbiri', 'birden',
+                     'birdenbire', 'biri', 'birice',
+                     'birileri', 'birisi', 'birkaç', 'birkaçı'
+                     'birkez', 'birlikte', 'birçok', 'birçoğu',
+                     'birþey', 'birþeyi', 'birşey','birşeyi',
+                     'birţey', 'bitevi', 'biteviye', 'bittabi',
+                     'biz', 'bizatihi', 'bizce', 'bizcileyin',
+                     'bizden', 'bize','bizi', 'bizim', 'bizimki',
+                     'bizzat', 'boşuna', 'bu', 'buna', 'bunda',
+                     'bundan', 'bunlar', 'bunları', 'bunların',
+                     'bunu', 'bunun', 'buracıkta', 'burada',
+                     'buradan', 'burası', 'böyle', 'böylece',
+                     'böylecene', 'böylelikle',  'böylemesine',
+                     'böylesine', 'büsbütün', 'bütün', 'cuk',
+                     'cümlesi', 'da', 'daha', 'dahi', 'dahil',
+                     'dahilen', 'daima', 'dair', 'dayanarak',
+                     'de', 'defa', 'dek', 'demin', 'demincek',
+                     'deminden', 'denli', 'derakap', 'derhal',
+                     'derken','deđil', 'değil', 'değin', 'diye',
+                     'diđer', 'diğer', 'diğeri', 'doksan', 'dokuz'
+                    ,'dolayı', 'dolayısıyla', 'doğru','dört',
+                     'edecek', 'eden', 'ederek', 'edilecek',
+                     'ediliyor', 'edilmesi', 'ediyor', 'elbet',
+                     'elbette', 'elli', 'emme','en', 'enikonu',
+                     'epey', 'epeyce', 'epeyi', 'esasen', 'esnasında',
+                     'etmesi', 'etraflı', 'etraflıca', 'etti', 'ettiği',
+                     'ettiğini', 'evleviyetle', 'evvel', 'evvela',
+                     'evvelce', 'evvelden', 'evvelemirde', 'evveli', 'eđer',
     'eğer', 'fakat', 'filanca', 'gah', 'gayet', 'gayetle', 'gayri', 'gayrı', 'gelgelelim', 'gene', 'gerek', 'gerçi',
     'geçende', 'geçenlerde', 'gibi', 'gibilerden', 'gibisinden', 'gine', 'göre', 'gırla', 'hakeza', 'halbuki', 'halen',
     'halihazırda', 'haliyle', 'handiyse', 'hangi', 'hangisi', 'hani', 'hariç', 'hasebiyle', 'hasılı', 'hatta', 'hele',
@@ -49,9 +73,10 @@ turkish_stopwords = ['a', 'acaba', 'acep', 'adamakıllı', 'adeta', 'ait', 'altm
     'þayet', 'þey', 'şayet', 'şey', 'şeyden', 'şeye', 'şeyi', 'şeyler', 'şöyle', 'şu', 'şuna', 'şuncacık', 'şunda',
     'şundan', 'şunlar', 'şunları', 'şunların', 'şunu', 'şunun', 'şura', 'şuracık', 'şuracıkta', 'şurası', 'şöyle']
 
-# Kelime ağırlıkları (senin tanımladığın şekilde)
+# Kelime ağırlıkları
 kelime_agirliklari = {
     "mükemmel": 2.0, "harika": 1.8, "kaliteli": 1.5, "güzel": 1.0, "iyi": 0.8,
+    "saglam":1.2,"muhtesem":2,"makul":1,
     "kusursuz": 2.0, "olumlu": 1.7, "memnun": 1.5, "keyifli": 1.4, "uygun": 1.2,
     "faydalı": 1.6, "beğendim": 1.5, "hızlı": 1.4, "şık": 1.3, "müthiş": 1.9,
     "özenli": 1.6, "rahat": 1.4, "başarılı": 1.8, "düzgün": 1.2, "dostane": 1.3,
@@ -77,7 +102,8 @@ kelime_agirliklari = {
     "hızlı teslimat": 1.6, "hoşuma gitti": 1.5, "hizli": 1.4, "bayıldımm": 2.0,
 
     # Negatif kelimeler
-    "kötü": -1.5, "berbat": -2.0, "hasarlı": -1.8, "geç": -1.2, "iade": -1.5,
+    "kötü": -1.5, "berbat": -2.0, "hasarlı": -1.8, "geç": -1.2, "iade": -1.5,"sorun": -1.5,
+    "düşüyo":-0.9,
     "bozuk": -1.7, "dikkatsiz": -1.4, "uygunsuz": -1.6, "kırık": -1.8, "problemli": -1.5,
     "yanlış": -1.3, "eksik": -1.7, "yavaş": -1.4, "kalitesiz": -1.8, "hayal kırıklığı": -2.0,
     "korkunç": -2.0, "fiyasko": -2.0, "sinir bozucu": -1.8, "beğenmedim": -1.5, "rahatsız": -1.4,
@@ -86,13 +112,38 @@ kelime_agirliklari = {
     "güvensiz": -1.8, "hüsran": -1.9, "yıkık": -1.7, "çirkin": -1.6, "kullanışsız": -1.8
 }
 
-# Yeni yıldız hesaplama (yorum sayısını dikkate alan)
+# --- Güncellenmiş yıldız hesaplama fonksiyonu ---
+# Bayes smoothing + tanh temelli yumuşak ölçekleme
+MIN_AVG = -1.8   # Kelime ağırlıklarında gözlenen min ortalama
+MAX_AVG =  2.0   # Kelime ağırlıklarında gözlenen max ortalama
+PRIOR_STAR = 3.5 # Genel ortalama yıldız
+SMOOTH_K = 5     # Smoothing katsayısı
+
 def hesapla_yildiz(toplam_skor, yorum_sayisi):
+    """
+    - toplam_skor: kelime ağırlıkları toplamı
+    - yorum_sayisi: gerçek yorum adedi
+
+    1) Ortalama skoru hesapla
+    2) Lineer olarak 0.5-5 aralığına map et
+    3) Yorum sayısına bağlı Bayes smoothing uygula
+    """
     if yorum_sayisi == 0:
-        return 0.0
-    ortalama_skor = toplam_skor / yorum_sayisi
-    normalize_edilmis = max(min((ortalama_skor + 1.5) / 3.0 * 5.0, 5.0), 0.5)
-    return round(normalize_edilmis, 1)
+        return round(PRIOR_STAR, 1)
+
+    # 1) Ortalama skor
+    avg = toplam_skor / yorum_sayisi
+
+    # 2) Linear mapping: MIN_AVG -> 0.5, MAX_AVG -> 5.0
+    raw_star = 0.5 + (avg - MIN_AVG) / (MAX_AVG - MIN_AVG) * (5.0 - 0.5)
+    raw_star = max(0.5, min(5.0, raw_star))
+
+    # 3) Bayes smoothing: blend raw_star ile prior arasında
+    w = yorum_sayisi / (yorum_sayisi + SMOOTH_K)
+    star = raw_star * w + PRIOR_STAR * (1 - w)
+
+    # Yuvarla 0.1 adımına
+    return round(star * 10) / 10
 
 # PostgreSQL bağlantısı
 try:
@@ -121,6 +172,8 @@ try:
         if valid_product_name not in yorumlar_dict:
             yorumlar_dict[valid_product_name] = []
         yorumlar_dict[valid_product_name].append(yorum)
+
+        analiz_sonuclari = []
 
     for product_name, yorum_listesi in yorumlar_dict.items():
         birlesik_yorumlar = " ".join(yorum_listesi).lower().translate(str.maketrans('', '', string.punctuation))
@@ -155,6 +208,23 @@ try:
         print(f"- Toplam Skor: {toplam_skor:.2f}")
         print(f"- Ortalama Skor: {toplam_skor / yorum_sayisi:.2f}" if yorum_sayisi > 0 else "- Ortalama Skor: 0")
         print(f"- Hesaplanan Yıldız: {yildiz}")
+
+        analiz_sonuclari.append((
+            product_name,
+            yorum_sayisi,
+            toplam_skor,
+            toplam_skor / yorum_sayisi if yorum_sayisi > 0 else 0,
+            yildiz
+        ))
+
+        with open("urun_skorlari.csv", "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["urun_adi", "yorum_sayisi", "toplam_skor", "ortalama_skor", "hesaplanan_yildiz"])
+            for urun in analiz_sonuclari:
+                writer.writerow(urun)
+
+        print("CSV dosyası başarıyla oluşturuldu.")
+
 
 except Exception as e:
     print(f"İşlem hatası: {e}")
